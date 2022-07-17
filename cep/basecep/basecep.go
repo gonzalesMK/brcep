@@ -1,11 +1,11 @@
-package api
+package basecep
 
 import (
 	"regexp"
 )
 
-// BrCepResult holds the standardized JSON result from the API
-type BrCepResult struct {
+// BrAddress holds the standardized JSON result from the API
+type BrAddress struct {
 	Cep         string `json:"cep"`
 	Endereco    string `json:"endereco"`
 	Bairro      string `json:"bairro"`
@@ -24,12 +24,12 @@ type BrCepResult struct {
 type API interface {
 	// Fetch should fetch the result from the
 	// API and return as BrCepResult
-	Fetch(cep string) (*BrCepResult, error)
+	Fetch(cep string) (*BrAddress, error)
 }
 
-var cepSanitizer = regexp.MustCompile("[^0-9]+")
+var CepSanitizer = regexp.MustCompile("[^0-9]+")
 
-// Sanitize replaces string with "" ..
-func (r *BrCepResult) Sanitize() {
-	r.Cep = cepSanitizer.ReplaceAllString(r.Cep, "")
+// Sanitize replaces not number with "" ..
+func (r *BrAddress) Sanitize() {
+	r.Cep = CepSanitizer.ReplaceAllString(r.Cep, "")
 }

@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/leogregianin/brcep/api"
+	"github.com/gonzalesMK/brcep/cep/basecep"
 )
 
 const (
@@ -57,7 +57,7 @@ func NewCorreiosAPI(url string, client *http.Client) *API {
 
 // Fetch implements API.Fetch by fetching the correios.com.br and
 // returning a BrCepResult
-func (api *API) Fetch(cep string) (*api.BrCepResult, error) {
+func (api *API) Fetch(cep string) (*basecep.BrAddress, error) {
 	envelope := `<soapenv:Envelope
 xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" 
 xmlns:cli="http://cliente.bean.master.sigep.bsb.correios.com.br/">
@@ -109,8 +109,8 @@ func (api *API) toUtf8(iso8859buff []byte) []byte {
 	return []byte(string(buf))
 }
 
-func (r responseEnvelope) toBrCepResult() *api.BrCepResult {
-	var result = new(api.BrCepResult)
+func (r responseEnvelope) toBrCepResult() *basecep.BrAddress {
+	var result = new(basecep.BrAddress)
 
 	result.Cep = r.Body.CepResponse.Return.Cep
 	result.Endereco = r.Body.CepResponse.Return.End

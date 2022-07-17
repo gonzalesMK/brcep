@@ -1,4 +1,4 @@
-package api
+package basecep
 
 import (
 	"testing"
@@ -14,7 +14,7 @@ type APISuite struct{}
 func Test(t *testing.T) { gc.TestingT(t) }
 
 func (s *APISuite) TestBrCepResultSanitizeShouldCleanCEP(c *gc.C) {
-	var brCepResult = &BrCepResult{
+	var brCepResult = &BrAddress{
 		Cep: "78-04-8000",
 	}
 

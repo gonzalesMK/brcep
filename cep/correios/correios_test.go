@@ -7,23 +7,18 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	gc "gopkg.in/check.v1"
+	"github.com/stretchr/testify/assert"
 )
-
-var _ = gc.Suite(&CorreiosSuite{})
 
 type CorreiosSuite struct{}
 
-// Hook up gocheck into the "go test" runner.
-func Test(t *testing.T) { gc.TestingT(t) }
-
-func (s *CorreiosSuite) TestNewCorreiosApiSetDefaultUrl(c *gc.C) {
+func TestNewCorreiosApiSetDefaultUrl(t *testing.T) {
 	var correiosAPI = NewCorreiosAPI("", nil)
-	c.Check(correiosAPI.url, gc.Equals, "https://apps.correios.com.br/")
-	c.Check(correiosAPI.client, gc.NotNil)
+	assert.Equal(t, correiosAPI.url, "https://apps.correios.com.br/")
+	assert.NotNil(t, correiosAPI.client)
 }
 
-func (s *CorreiosSuite) TestFetchShouldFailWhenInvalidStatusCode(c *gc.C) {
+func (s *CorreiosSuite) TestFetchShouldFailWhenInvalidStatusCode(t *testing.T) {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	})
@@ -34,10 +29,10 @@ func (s *CorreiosSuite) TestFetchShouldFailWhenInvalidStatusCode(c *gc.C) {
 	var correiosAPI = NewCorreiosAPI("", httpClient)
 	_, err := correiosAPI.Fetch("78048000")
 
-	c.Check(err, gc.NotNil)
+	assert.NotNil(t, err)
 }
 
-func (s *CorreiosSuite) TestFetchShouldFailWhenInvalidJSON(c *gc.C) {
+func (s *CorreiosSuite) TestFetchShouldFailWhenInvalidJSON(t *testing.T) {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("invalid json"))
 	})
@@ -48,10 +43,10 @@ func (s *CorreiosSuite) TestFetchShouldFailWhenInvalidJSON(c *gc.C) {
 	var correiosAPI = NewCorreiosAPI("", httpClient)
 	_, err := correiosAPI.Fetch("78048000")
 
-	c.Check(err, gc.NotNil)
+	assert.NotNil(t, err)
 }
 
-func (s *CorreiosSuite) TestFetchShouldSucceedWhenCorrectRemoteResponse(c *gc.C) {
+func (s *CorreiosSuite) TestFetchShouldSucceedWhenCorrectRemoteResponse(t *testing.T) {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
 <soap:Body>
@@ -74,14 +69,14 @@ func (s *CorreiosSuite) TestFetchShouldSucceedWhenCorrectRemoteResponse(c *gc.C)
 	var correiosAPI = NewCorreiosAPI("http://localhost:8080/", httpClient)
 	result, err := correiosAPI.Fetch("78048000")
 
-	c.Check(err, gc.IsNil)
-	c.Check(result, gc.NotNil)
-	c.Check(result.Cep, gc.Equals, "78048000")
-	c.Check(result.Endereco, gc.Equals, "Avenida Miguel Sutil")
-	c.Check(result.Complemento, gc.Equals, "- de 5686 a 6588 - lado par")
-	c.Check(result.Bairro, gc.Equals, "Alvorada")
-	c.Check(result.Cidade, gc.Equals, "CuiabÃ¡")
-	c.Check(result.Uf, gc.Equals, "MT")
+	assert.Nil(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, result.Cep, "78048000")
+	assert.Equal(t, result.Endereco, "Avenida Miguel Sutil")
+	assert.Equal(t, result.Complemento, "- de 5686 a 6588 - lado par")
+	assert.Equal(t, result.Bairro, "Alvorada")
+	assert.Equal(t, result.Cidade, "CuiabÃ¡")
+	assert.Equal(t, result.Uf, "MT")
 }
 
 func testingHTTPClient(handler http.Handler) (*http.Client, func()) {

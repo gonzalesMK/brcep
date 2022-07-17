@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/leogregianin/brcep/api"
+	"github.com/gonzalesMK/brcep/cep/basecep"
 )
 
 const (
@@ -20,7 +20,7 @@ type API struct {
 	client *http.Client
 }
 
-type responsePayload struct {
+type viacepResponse struct {
 	Cep         string `json:"cep"`
 	Logradouro  string `json:"logradouro"`
 	Bairro      string `json:"bairro"`
@@ -48,34 +48,30 @@ func NewViaCepAPI(url string, client *http.Client) *API {
 
 // Fetch implements API.Fetch by fetching the viacep.com.br and
 // returning a BrCepResult
-func (api *API) Fetch(cep string) (*api.BrCepResult, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf(api.url+"ws/%s/json/", cep), nil)
+func (api *API) Fetch(cep string) (*basecep.BrAddress, error) {
+
+	resp, err := api.client.Get(fmt.Sprintf(api.url+"ws/%s/json/", cep))
 	if err != nil {
 		return nil, fmt.Errorf("ViaCepApi.Fetch %v", err)
 	}
-
-	resp, err := api.client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("ViaCepApi.Fetch %v", err)
-	}
-
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		return nil, fmt.Errorf("ViaCepApi.Fetch %v %d", "invalid status code", resp.StatusCode)
 	}
 
-	var result responsePayload
+	// Decode result
+	var result viacepResponse
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
 		return nil, fmt.Errorf("ViaCepApi.Fetch %v", err)
 	}
 
-	return result.toBrCepResult(), nil
+	return result.toCEP(), nil
 }
 
-func (r responsePayload) toBrCepResult() *api.BrCepResult {
-	var result = new(api.BrCepResult)
+func (r viacepResponse) toCEP() *basecep.BrAddress {
+	var result = new(basecep.BrAddress)
 
 	result.Cep = r.Cep
 	result.Endereco = r.Logradouro
